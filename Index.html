@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Diceoku</title>
+<style>
+body{margin:0;background:#102019;color:#fff;font-family:Arial;text-align:center}
+.wrap{max-width:620px;margin:auto;padding:14px}
+h1{letter-spacing:4px}
+#grid{display:grid;grid-template-columns:repeat(9,1fr);aspect-ratio:1;background:#fff;border:3px solid #fff}
+.cell{border:1px solid #777;background:#f5f1e8;font-size:24px;font-weight:bold}
+.r{border-right:3px solid #18221d}.b{border-bottom:3px solid #18221d}
+.ghost{opacity:.18}.legal{background:#cfe8d5}
+.dice{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.die{background:#f5f1e8;color:#18221d;padding:10px;border-radius:14px}
+.die b{font-size:40px}
+button{padding:14px;border:0;border-radius:12px;font-weight:bold}
+#roll{width:100%;margin-top:10px;background:#9dd4af;font-size:16px}
+#msg{min-height:50px;padding:10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>DICEOKU</h1>
+<p>SOLO • BOX LOCK</p>
+
+<div id="grid"></div>
+
+<div class="dice">
+<div class="die">BOX<br><b id="box">–</b></div>
+<div class="die">NUMBER<br><b id="num">–</b></div>
+</div>
+
+<div id="msg">Roll the dice</div>
+<button id="roll">ROLL TWO DICE</button>
+</div>
+
+<script>
+const g=document.getElementById("grid");
+let board=Array(81).fill(0),box=null,num=null;
+
+for(let r=0;r<9;r++){
+ for(let c=0;c<9;c++){
+  let x=document.createElement("button");
+  x.className="cell"+((c==2||c==5)?" r":"")+((r==2||r==5)?" b":"");
+  x.dataset.r=r;x.dataset.c=c;
+  x.dataset.box=Math.floor(r/3)*3+Math.floor(c/3)+1;
+  x.onclick=()=>place(x);
+  g.appendChild(x);
+ }
+}
+
+const cells=[...document.querySelectorAll(".cell")];
+
+function legal(r,c,n){
+ let i=r*9+c;
+ if(board[i])return false;
+ for(let x=0;x<9;x++)
+  if(board[r*9+x]==n||board[x*9+c]==n)return false;
+ let br=Math.floor(r/3)*3,bc=Math.floor(c/3)*3;
+ for(let rr=br;rr<br+3;rr++)
+  for(let cc=bc;cc<bc+3;cc++)
+   if(board[rr*9+cc]==n)return false;
+ return true;
+}
+
+function render(){
+ cells.forEach((x,i)=>{
+  x.textContent=board[i]||"";
+  x.classList.remove("ghost","legal");
+ });
+}
+
+function highlight(){
+ render();
+ cells.forEach(x=>{
+  let r=+x.dataset.r,c=+x.dataset.c,b=+x.dataset.box;
+  if(box!==0&&b!==box)x.classList.add("ghost");
+  else if(num!==0&&legal(r,c,num))x.classList.add("legal");
+ });
+}
+
+document.getElementById("roll").onclick=()=>{
+ box=Math.floor(Math.random()*10);
+ num=Math.floor(Math.random()*10);
+ document.getElementById("box").textContent=box;
+ document.getElementById("num").textContent=num;
+
+ if(box===0||num===0){
+  document.getElementById("msg").textContent="Wildcard rolled — test mode";
+ }else{
+  document.getElementById("msg").textContent="Place "+num+" somewhere in Box "+box;
+ }
+ highlight();
+};
+
+function place(x){
+ if(box===null||num===0)return;
+ let r=+x.dataset.r,c=+x.dataset.c,b=+x.dataset.box;
+ if(box!==0&&b!==box)return;
+ if(!legal(r,c,num))return;
+ board[r*9+c]=num;
+ render();
+ document.getElementById("msg").textContent="Placed. Roll again.";
+ box=null;num=null;
+}
+
+render();
+</script>
+</body>
+</html>
