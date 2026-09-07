@@ -93,6 +93,19 @@ document.getElementById("roll").onclick=()=>{
   document.getElementById("msg").textContent="Place "+num+" somewhere in Box "+box;
  }
  highlight();
+ if(num!==0){
+ const possible=cells.some(x=>{
+  let r=+x.dataset.r,c=+x.dataset.c,b=+x.dataset.box;
+  return (box===0||b===box)&&legal(r,c,num);
+ });
+
+ if(!possible){
+  document.getElementById("msg").textContent=
+   "No legal placement — token lost. Roll again.";
+  box=null;
+  num=null;
+ }
+}
 };
 
 function place(x){
